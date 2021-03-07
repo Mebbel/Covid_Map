@@ -12,6 +12,10 @@ FLUSH PRIVILEGES;
 DROP USER 'Read_User'@'localhost';
 FLUSH PRIVILEGES;
 CREATE USER 'Read_User'@'localhost' IDENTIFIED BY '123456';
+GRANT SELECT ON *.* to 'Read_User'@'localhost';
+
+-- For RMySQL to work, we need to change the authentication method of the Read_User
+ALTER USER 'Read_User'@'localhost' IDENTIFIED WITH mysql_native_password BY '123456';
 
 -- Create Log Table for Downloads
 DROP TABLE data_requests;

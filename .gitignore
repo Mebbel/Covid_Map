@@ -127,3 +127,4 @@ dmypy.json
 # Additional
 *.bat
 *.xlsx
+secrets.py
