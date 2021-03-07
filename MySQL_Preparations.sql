@@ -8,7 +8,7 @@ CREATE USER 'Write_User'@'localhost' IDENTIFIED BY '123456';
 GRANT ALL PRIVILEGES ON *.* TO 'Write_User'@'localhost' WITH GRANT OPTION;
 FLUSH PRIVILEGES;
 
--- Reading User - This user will be used for data analysis only. We do not want to alter the database my mistake
+-- Reading User - This user will be used for data analysis only. We do not want to alter the database by mistake
 DROP USER 'Read_User'@'localhost';
 FLUSH PRIVILEGES;
 CREATE USER 'Read_User'@'localhost' IDENTIFIED BY '123456';
