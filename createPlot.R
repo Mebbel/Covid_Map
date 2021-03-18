@@ -24,8 +24,9 @@ library(DBI)
 library(RMySQL)
 
 library(dplyr)
+library(tidyr)
 library(ggplot2)
-library(ggrepel)
+library(scales)
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -85,32 +86,37 @@ latest_date <- rki_landkreis[rki_landkreis$ID_REQUEST == max(rki_landkreis$ID_RE
 latest_date <- as.Date(latest_date, format = "%d.%m.%Y, %H:%M Uhr")
 
 
+# Calculate weekly change in cases
+latest_ID_REQUEST = max(rki_landkreis$ID_REQUEST, na.rm = T)
 
-# For latest data
 data_plot_landkreis <- 
-  rki_landkreis %>%
-  filter(ID_REQUEST == max(ID_REQUEST)) %>%
+  rki_landkreis %>% 
+  filter(ID_REQUEST == latest_ID_REQUEST | ID_REQUEST == (latest_ID_REQUEST - 7)) %>%
+  select(ID_REQUEST, BL, county, EWZ, cases7_per_100k) %>%
+  group_by(BL, county) %>%
+  pivot_wider(names_from = ID_REQUEST, values_from = cases7_per_100k) %>%
+  rename(
+    cases_today = as.character(latest_ID_REQUEST),
+    cases_last_week = as.character(latest_ID_REQUEST - 7)
+  ) %>%
+  mutate(
+    cases_rel_change = (cases_today / if_else(cases_last_week == 0, 1, cases_last_week) - 1)
+  ) %>% ungroup()
+
+
+
+# Filter to large counties
+data_plot_landkreis <- 
+  data_plot_landkreis %>%
   filter(EWZ > 100000)
 
-# Subset to largest cities in each county to add labels
-data_plot_landkreis_largest_county <- 
-  data_plot_landkreis %>%
-  group_by(BL) %>%
-  arrange(desc(EWZ)) %>%
-  filter(row_number() <= 2) %>%
-  mutate(label = paste0(county, " (", cases7_per_100k, ")"))
 
+set.seed(123456) # Seed for geom_jitter
 data_plot_landkreis %>%
-  ggplot(aes(x = factor(BL, levels = sort(unique(BL), decreasing = TRUE)), y = cases7_per_100k)) + 
+  ggplot(aes(x = factor(BL, levels = sort(unique(BL), decreasing = TRUE)), y = cases_today)) + 
   theme_classic() + 
-  geom_hline(yintercept = c(35, 50, 100), color = c("green", "blue", "red"), size = 1) +
-  geom_point(aes(size = EWZ), color = rgb(0,0,50, maxColorValue = 255)) + 
-  geom_label_repel(
-    data = data_plot_landkreis_largest_county, 
-    aes(label = label),
-    box.padding   = 0.1, 
-    point.padding = 0.75,
-    segment.color = 'grey50') +
+  geom_hline(yintercept = c(35, 50, 100), color = c("#649B3F", "#000032", "#CC0000"), size = 1) +
+  geom_jitter(aes(size = EWZ, color = cases_rel_change)) + 
   coord_flip() + 
   labs(title = "Covid Incidence Rate by Bundesland and County",
        subtitle = paste0("As of: ", latest_date),
@@ -119,9 +125,12 @@ data_plot_landkreis %>%
   xlab(element_blank()) +
   ylab("Average number of cases per 100.000 Inhabitants over the last 7 days") + 
   theme(
-    panel.grid.major.y = element_line(color = "grey50", size = 0.5, linetype = "solid"),
-    legend.position = "none"
-    )
+    panel.grid.major.y = element_line(color = "grey50", size = 0.5, linetype = "solid")
+    ) + 
+  scale_y_continuous(labels = comma) +
+  scale_color_steps2(labels = percent, name = "Relative change", low = "#649B3F", mid = "white", high = "#CC0000", limits = c(-0.3, 0.3), midpoint = 0) +
+  scale_size(labels = comma, name = "Population") +
+  guides()
 
 # Save the plot
 ggsave(paste0("./plots/", "Case_Incidence_by_County_", gsub("-", "_", as.character(latest_date)), ".png"), width = 13, height = 9, dpi = 300)
