@@ -16,6 +16,13 @@
 
 
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+# ToDos ####
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+
+# Animate the plot
+# Cluster by incidence rate pattern within county / across counties
+
+#~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 # Packages  ####
 #~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
@@ -104,12 +111,12 @@ data_plot_landkreis <-
   ) %>% ungroup()
 
 
-
 # Filter to large counties
 data_plot_landkreis <- 
   data_plot_landkreis %>%
   filter(EWZ > 100000)
 
+# ToDo: Mark "Landeshauptstadt"
 
 set.seed(123456) # Seed for geom_jitter
 data_plot_landkreis %>%
