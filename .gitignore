@@ -128,3 +128,4 @@ dmypy.json
 *.bat
 *.xlsx
 secrets.py
+.Rproj.user

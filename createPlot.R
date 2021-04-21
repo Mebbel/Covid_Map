@@ -70,7 +70,7 @@ rki_landkreis <- DBI::dbGetQuery(dbconn, "SELECT * FROM rki_landkreis")
 # # Number of counties (county)
 # length(unique(rki_landkreis$county)) #412 -> that is a bit much.
 # 
-# # Number of Bundesl�nder (BL)
+# # Number of Bundesl?nder (BL)
 # length(unique(rki_landkreis$BL)) # 16 -> that's a good number
 # 
 # # Get the largest counties by Bundesland
@@ -144,8 +144,41 @@ ggsave(paste0("./plots/", "Case_Incidence_by_County_", gsub("-", "_", as.charact
 
 
 
+# Plot over time for largest counties
+data_plot_landkreis_t <- 
+  rki_landkreis %>%
+  select(BL, county, last_update, cases7_per_100k) %>%
+  filter(county %in% sort(data_plot_landkreis$county)) %>%
+  # filter(BL == "Bayern") %>% #, county == "SK München"
+  group_by(BL, last_update) %>%
+  mutate(ymin = quantile(cases7_per_100k, 0.05), ymax = quantile(cases7_per_100k, 0.95)) %>%
+  mutate(last_update = as.Date(last_update, format = "%d.%m.%Y, %H:%M Uhr"))
 
+data_plot_landkreis_t %>%
+  ggplot(aes(x = last_update, y = cases7_per_100k, group = county)) + 
+  theme_classic() + 
+  geom_ribbon(aes(ymin = ymin, ymax = ymax), fill = "grey80", color = "white", alpha = 0.2) +
+  geom_line(alpha = 0.2, color = "#000032") +
+  # Highlight cities of interest in each BL
+  geom_line(
+    data = data_plot_landkreis_t %>% 
+      filter(county %in% 
+               c("SK Stuttgart", "SK München", "SK Berlin Mitte", "SK Potsdam", 
+                 "SK Bremen", "SK Wiesbaden", "SK Rostock",
+                 "Region Hannover", "SK Düsseldorf", "SK Mainz", "LK Stadtverband Saarbrücken",
+                 "SK Dresden", "SK Magdeburg", "SK Kiel", "SK Erfurt"
+                 )), 
+    color = "red") +
+  facet_wrap(. ~ BL) +
+  xlab(element_blank()) +
+  ylab("Average number of cases per 100.000 Inhabitants over the last 7 days") +
+  labs(title = "Covid Incidence Rate by Bundesland and County",
+       subtitle = paste0("As of: ", latest_date),
+       caption = "Data Source: Robert Koch-Institut (RKI)"
+  )
 
+# Save the plot
+ggsave(paste0("./plots/", "Case_Incidence_by_County_over_time", gsub("-", "_", as.character(latest_date)), ".png"), width = 13, height = 9, dpi = 300)
 
 
 
