@@ -163,9 +163,9 @@ data_plot_landkreis_t %>%
   geom_line(
     data = data_plot_landkreis_t %>% 
       filter(county %in% 
-               c("SK Stuttgart", "SK München", "SK Berlin Mitte", "SK Potsdam", 
+               c("SK Stuttgart", "SK M�nchen", "SK Berlin Mitte", "SK Potsdam", 
                  "SK Bremen", "SK Wiesbaden", "SK Rostock",
-                 "Region Hannover", "SK Düsseldorf", "SK Mainz", "LK Stadtverband Saarbrücken",
+                 "Region Hannover", "SK D�sseldorf", "SK Mainz", "LK Stadtverband Saarbrücken",
                  "SK Dresden", "SK Magdeburg", "SK Kiel", "SK Erfurt"
                  )), 
     color = "red") +
